@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 
+import 'package:pomodoro/widgets/time_button.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
@@ -14,13 +16,22 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isRunning = false;
   int totalPomodoros = 0;
   late Timer timer;
+  int selectedTime = twentyFiveMinutes;
+
+  int currentCycle = 0; // 현재 완료한 사이클 수
+  int roundsCompleted = 0; // 완료한 라운드 수
+  static const int cyclesPerRound = 4; // 한 라운드 당 사이클 수
 
   void onTick(Timer timer) {
     if (totalSeconds == 0) {
       setState(() {
-        isRunning = false;
-        totalPomodoros = totalPomodoros + 1;
         totalSeconds = twentyFiveMinutes;
+        currentCycle++;
+        if (currentCycle % cyclesPerRound == 0) {
+          roundsCompleted++;
+          currentCycle = 0; // 새로운 라운드를 시작하기 위해 사이클 수 리셋
+        }
+        isRunning = false;
       });
       timer.cancel();
     } else {
@@ -48,11 +59,22 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void onResetPressed() {
-    timer.cancel();
-    setState(() {
-      isRunning = false;
-      totalSeconds = twentyFiveMinutes;
-    });
+    if (!isRunning) {
+      timer.cancel();
+      setState(() {
+        totalSeconds = twentyFiveMinutes;
+        selectedTime = twentyFiveMinutes;
+      });
+    }
+  }
+
+  void updateTime(int seconds) {
+    if (!isRunning) {
+      setState(() {
+        totalSeconds = seconds;
+        selectedTime = seconds;
+      });
+    }
   }
 
   String format(int seconds) {
@@ -106,144 +128,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        TextButton(
-                          onPressed: () {
-                            if (!isRunning) {
-                              setState(() {
-                                totalSeconds = 900;
-                              });
-                            }
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(15),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).cardColor,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Text(
-                              '15',
-                              style: TextStyle(
-                                fontSize: 40,
-                                color: Colors.red,
-                              ),
-                            ),
+                        for (int i = 0; i < 6; i++)
+                          TimeButton(
+                            totalSeconds: 900 + 300 * i,
+                            label: '${15 + 5 * i}',
+                            isRunning: isRunning,
+                            selectedTime: selectedTime,
+                            onUpdate: updateTime,
                           ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            if (!isRunning) {
-                              setState(() {
-                                totalSeconds = 1200;
-                              });
-                            }
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(15),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).cardColor,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Text(
-                              '20',
-                              style: TextStyle(
-                                fontSize: 40,
-                                color: Colors.red,
-                              ),
-                            ),
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            if (!isRunning) {
-                              setState(() {
-                                totalSeconds = 1500;
-                              });
-                            }
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(15),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).cardColor,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Text(
-                              '25',
-                              style: TextStyle(
-                                fontSize: 40,
-                                color: Colors.red,
-                              ),
-                            ),
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            if (!isRunning) {
-                              setState(() {
-                                totalSeconds = 1800;
-                              });
-                            }
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(15),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).cardColor,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Text(
-                              '30',
-                              style: TextStyle(
-                                fontSize: 40,
-                                color: Colors.red,
-                              ),
-                            ),
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            if (!isRunning) {
-                              setState(() {
-                                totalSeconds = 2100;
-                              });
-                            }
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(15),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).cardColor,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Text(
-                              '35',
-                              style: TextStyle(
-                                fontSize: 40,
-                                color: Colors.red,
-                              ),
-                            ),
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            if (!isRunning) {
-                              setState(() {
-                                totalSeconds = 2400;
-                              });
-                            }
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(15),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).cardColor,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Text(
-                              '40',
-                              style: TextStyle(
-                                fontSize: 40,
-                                color: Colors.red,
-                              ),
-                            ),
-                          ),
-                        ),
                       ],
                     ),
                   ),
@@ -271,43 +163,63 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           Flexible(
             flex: 1,
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(30),
-                        topRight: Radius.circular(30),
-                      ),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Pomodoros',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                            color:
-                                Theme.of(context).textTheme.titleLarge!.color,
-                          ),
-                        ),
-                        Text(
-                          '$totalPomodoros',
-                          style: TextStyle(
-                            fontSize: 58,
-                            fontWeight: FontWeight.w600,
-                            color:
-                                Theme.of(context).textTheme.titleLarge!.color,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              clipBehavior: Clip.hardEdge,
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(30),
+                  topRight: Radius.circular(30),
                 ),
-              ],
+                color: Theme.of(context).cardColor,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '$currentCycle/$cyclesPerRound',
+                        style: const TextStyle(
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const Text(
+                        'ROUND',
+                        style: TextStyle(
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '$roundsCompleted',
+                        style: const TextStyle(
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const Text(
+                        'GOAL',
+                        style: TextStyle(
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ],
